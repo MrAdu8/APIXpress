@@ -21,17 +21,14 @@ router.get('/', async(req, res, next) => {
 /* POST hobby listing. */
 router.post('/', async (req, res, next) => {
   try {
-    const { firstName, lastName, email, phoneNo } = req.body;
+    const { name } = req.body;
 
-    if (!firstName || !lastName || !email || !phoneNo) {
-      throw new Error('you are missing one column');
+    if (!name) {
+      throw new Error('you are missing name');
     }
 
     const hobbyData = {
-      firstName,
-      lastName,
-      email,
-      phoneNo
+      name
     };
 
     const SQL = "INSERT INTO hobbies SET ?";
@@ -53,10 +50,10 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
   try {
     const id = req.params.id;
-    const { firstName, lastName, email, phoneNo } = req.body;
+    const { name } = req.body;
 
-    if (!firstName || !lastName || !email || !phoneNo) {
-      throw new Error('You are missing one column');
+    if (!name) {
+      throw new Error('You are missing name');
     }
 
     const updatedOn = new Date();
