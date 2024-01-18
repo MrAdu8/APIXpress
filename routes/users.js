@@ -5,19 +5,15 @@ var router = express.Router();
 /* GET users listing. */
 router.get('/', async(req, res, next) => {
   try {
-    const SQL = "SELECT * FROM users";
 
-    const result = await connection.query(SQL);
+    const result = await connection.query("SELECT * FROM users");
     if (result.affectedRow === 0) {
-      console.log('ERROR');
       res.status(404).json({err: 'Unable to get data from user'});
     } else {
-      console.log(result);
       res.status(200).json(result);
     }
 
   } catch (error) {
-    console.log(error);
     res.status(500).json({err: 'You can not access user data something is wrong !!'});
   }
 });
@@ -35,8 +31,7 @@ router.post('/', async (req, res, next) => {
       firstName,
       lastName,
       email,
-      phoneNo,
-      updatedOn: new Date()
+      phoneNo
     };
 
     const SQL = "INSERT INTO users SET ?";
@@ -44,23 +39,20 @@ router.post('/', async (req, res, next) => {
     const result = await connection.query(SQL, userData);
 
     if (result.affectedRows === 0) {
-      console.log('ERROR');
       res.status(404).json({ err: 'Unable to update data for user' });
     } else {
-      console.log(result);
       res.status(200).json({ message: 'User data added successfully' });
     }
 
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ err: 'Unable to access user data. Something is wrong!' });
+    res.status(500).json({ error: 'Unable to access user data. Something is wrong!' });
   }
 });
 
 /* PUT users listing. */
-router.put('/:Id', async (req, res, next) => {
+router.put('/:id', async (req, res, next) => {
   try {
-    const Id = req.params.Id;
+    const id = req.params.id;
     const { firstName, lastName, email, phoneNo } = req.body;
 
     if (!firstName || !lastName || !email || !phoneNo) {
@@ -69,43 +61,46 @@ router.put('/:Id', async (req, res, next) => {
 
     const updatedOn = new Date();
 
-    const SQL = "UPDATE users SET firstName = ?, lastName = ?, email = ?, phoneNo = ?, updatedOn = ? WHERE Id = ?";
+    const userData = {
+      firstName,
+      lastName,
+      email,
+      phoneNo,
+      updatedOn
+    };
 
-    const result = await connection.query(SQL, [firstName, lastName, email, phoneNo, updatedOn, Id]);
+    const SQL = "UPDATE users SET ? WHERE id = ?";
+
+    const result = await connection.query(SQL, [userData, id]);
 
     if (result.affectedRows === 0) {
-      console.log('ERROR');
       res.status(404).json({ err: 'Unable to update data for user' });
     } else {
-      console.log(result);
       res.status(200).json({ message: 'User data updated successfully' });
     }
 
   } catch (error) {
-    console.log(error);
     res.status(500).json({ err: 'Unable to access user data. Something is wrong!' });
   }
 });
 
+
 /* DELETE user listing. */
-router.delete('/:Id', async (req, res, next) => {
+router.delete('/:id', async (req, res, next) => {
   try {
-    const userId = req.params.Id;
+    const userid = req.params.id;
 
-    const SQL = "DELETE FROM users WHERE Id = ?";
+    const SQL = "DELETE FROM users WHERE id = ?";
 
-    const result = await connection.query(SQL, [userId]);
+    const result = await connection.query(SQL, [userid]);
 
     if (result.affectedRows === 0) {
-      console.log('ERROR');
       res.status(404).json({ err: 'User not found or unable to delete user' });
     } else {
-      console.log(result);
       res.status(200).json({ message: 'User deleted successfully' });
     }
 
   } catch (error) {
-    console.log(error);
     res.status(500).json({ err: 'Unable to delete user. Something is wrong!' });
   }
 });
