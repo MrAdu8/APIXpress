@@ -18,6 +18,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('hobby', hobbiesRouter);
+app.use('hobbies', hobbiesRouter);
 
 module.exports = app;
