@@ -33,10 +33,21 @@ router.post('/', async (req, res, next) => {
       email,
       phoneNo
     };
-
+    var hobby = [];
+    hobby = req.body.hobbies.split(',');
+    
     const SQL = "INSERT INTO users SET ?";
-
+    
     const result = await connection.query(SQL, userData);
+    
+    
+    // hobby = req.body.rate.split(',');
+    for (let i = 0; i < hobby.length; i++) {
+      const hobbyId = hobby[i];
+      const   userId = result.insertId;
+      const HSQL = "INSERT INTO userhobby SET ?"
+      const Hresult = connection.query(HSQL, { userId, hobbyId })
+    }
 
     if (result.affectedRows === 0) {
       res.status(404).json({ err: 'Unable to update data for user' });
