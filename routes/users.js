@@ -3,6 +3,7 @@ const connection = require('../database');
 var router = express.Router();
 
 /* GET users listing. */
+// GET all data from users
 router.get('/', async(req, res, next) => {
   try {
 
@@ -19,6 +20,7 @@ router.get('/', async(req, res, next) => {
 });
 
 /* POST users listing. */
+// ADD new data to users
 router.post('/', async (req, res, next) => {
   try {
     const { firstName, lastName, email, phoneNo } = req.body;
@@ -35,18 +37,16 @@ router.post('/', async (req, res, next) => {
     };
     var hobby = [];
     hobby = req.body.hobbies.split(',');
-    
+
     const SQL = "INSERT INTO users SET ?";
-    
+
     const result = await connection.query(SQL, userData);
-    
-    
-    // hobby = req.body.rate.split(',');
+
     for (let i = 0; i < hobby.length; i++) {
       const hobbyId = hobby[i];
-      const   userId = result.insertId;
-      const HSQL = "INSERT INTO userhobby SET ?"
-      const Hresult = connection.query(HSQL, { userId, hobbyId })
+      const userId = result.insertId;
+      const HSQL = "INSERT INTO userhobby SET ?";
+      const Hresult = connection.query(HSQL, { userId, hobbyId });
     }
 
     if (result.affectedRows === 0) {
@@ -56,11 +56,12 @@ router.post('/', async (req, res, next) => {
     }
 
   } catch (error) {
-    res.status(500).json({ error: 'Unable to access user data. Something is wrong!' });
+    res.status(400).json({ error: 'Unable to access user data. Something is wrong!' });
   }
 });
 
 /* PUT users listing. */
+// UPDATE existing user
 router.put('/:id', async (req, res, next) => {
   try {
     const id = req.params.id;
@@ -91,12 +92,13 @@ router.put('/:id', async (req, res, next) => {
     }
 
   } catch (error) {
-    res.status(500).json({ err: 'Unable to access user data. Something is wrong!' });
+    res.status(400).json({ err: 'Unable to access user data. Something is wrong!' });
   }
 });
 
 
 /* DELETE user listing. */
+// DELETE user
 router.delete('/:id', async (req, res, next) => {
   try {
     const userid = req.params.id;
@@ -112,7 +114,7 @@ router.delete('/:id', async (req, res, next) => {
     }
 
   } catch (error) {
-    res.status(500).json({ err: 'Unable to delete user. Something is wrong!' });
+    res.status(400).json({ err: 'Unable to delete user. Something is wrong!' });
   }
 });
 
