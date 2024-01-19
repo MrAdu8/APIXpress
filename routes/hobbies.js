@@ -1,6 +1,11 @@
 var express = require('express');
+const {body, validationResult} = require('express-validator');
 const connection = require('../database');
 var router = express.Router();
+
+const validateHobbyData = [
+  body('name').toLength({ min:3 }).withMessage('Name must be at least 3 characters'),
+];
 
 /* GET hobby listing. */
 router.get('/', async(req, res, next) => {
@@ -19,13 +24,14 @@ router.get('/', async(req, res, next) => {
 });
 
 /* POST hobby listing. */
-router.post('/', async (req, res, next) => {
+router.post('/', validateHobbyData, async (req, res, next) => {
   try {
-    const { name } = req.body;
-
-    if (!name) {
-      throw new Error('you are missing name');
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
+
+    const { name } = req.body;
 
     const hobbyData = {
       name
@@ -35,11 +41,7 @@ router.post('/', async (req, res, next) => {
 
     const result = await connection.query(SQL, hobbyData);
 
-    if (result.affectedRows === 0) {
-      res.status(404).json({ err: 'Unable to update data for hobby' });
-    } else {
-      res.status(200).json({ message: 'hobby data added successfully' });
-    }
+    res.status(200).json({ message: 'hobby data added successfully', result });
 
   } catch (error) {
     res.status(500).json({ error: 'Unable to access hobby data. Something is wrong!' });
@@ -47,14 +49,15 @@ router.post('/', async (req, res, next) => {
 });
 
 /* PUT hobby listing. */
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', validateHobbyData, async (req, res, next) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     const id = req.params.id;
     const { name } = req.body;
-
-    if (!name) {
-      throw new Error('You are missing name');
-    }
 
     const updatedOn = new Date();
 
@@ -67,11 +70,7 @@ router.put('/:id', async (req, res, next) => {
 
     const result = await connection.query(SQL, [hobbyData, id]);
 
-    if (result.affectedRows === 0) {
-      res.status(404).json({ err: 'Unable to update data for user' });
-    } else {
-      res.status(200).json({ message: 'User data updated successfully' });
-    }
+    res.status(200).json({ message: 'User data updated successfully', result });
 
   } catch (error) {
     res.status(500).json({ err: 'Unable to access user data. Something is wrong!' });

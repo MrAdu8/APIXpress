@@ -1,6 +1,14 @@
 var express = require('express');
+const { body, validationResult } = require('express-validator');
 const connection = require('../database');
 var router = express.Router();
+
+const validateUserData = [
+  body('firstName').isLength({ min: 3 }).withMessage('First name must be at least 3 characters'),
+  body('lastName').isLength({ min: 3 }).withMessage('Last name must be at least 3 characters'),
+  body('email').isEmail().withMessage('Invalid email address'),
+  body('phoneNo').isLength({ min: 7, max: 15 }).withMessage('Phone number must be exactly 10 digits'),
+];
 
 /* GET users listing. */
 // GET all data from users
@@ -21,14 +29,15 @@ router.get('/', async(req, res, next) => {
 
 /* POST users listing. */
 // ADD new data to users
-router.post('/', async (req, res, next) => {
+router.post('/', validateUserData, async (req, res, next) => {
   try {
-    const { firstName, lastName, email, phoneNo } = req.body;
-
-    if (!firstName || !lastName || !email || !phoneNo) {
-      throw new Error('you are missing one column');
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
 
+    const { firstName, lastName, email, phoneNo } = req.body;
+    
     const userData = {
       firstName,
       lastName,
@@ -49,11 +58,7 @@ router.post('/', async (req, res, next) => {
       const Hresult = connection.query(HSQL, { userId, hobbyId });
     }
 
-    if (result.affectedRows === 0) {
-      res.status(404).json({ err: 'Unable to update data for user' });
-    } else {
-      res.status(200).json({ message: 'User data added successfully' });
-    }
+    res.status(200).json({ message: 'User data added successfully', result });
 
   } catch (error) {
     res.status(400).json({ error: 'Unable to access user data. Something is wrong!' });
@@ -62,14 +67,15 @@ router.post('/', async (req, res, next) => {
 
 /* PUT users listing. */
 // UPDATE existing user
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', validateUserData, async (req, res, next) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     const id = req.params.id;
     const { firstName, lastName, email, phoneNo } = req.body;
-
-    if (!firstName || !lastName || !email || !phoneNo) {
-      throw new Error('You are missing one column');
-    }
 
     const updatedOn = new Date();
 
@@ -82,14 +88,9 @@ router.put('/:id', async (req, res, next) => {
     };
 
     const SQL = "UPDATE users SET ? WHERE id = ?";
-
     const result = await connection.query(SQL, [userData, id]);
 
-    if (result.affectedRows === 0) {
-      res.status(404).json({ err: 'Unable to update data for user' });
-    } else {
-      res.status(200).json({ message: 'User data updated successfully' });
-    }
+    res.status(200).json({ message: 'User data updated successfully', result });
 
   } catch (error) {
     res.status(400).json({ err: 'Unable to access user data. Something is wrong!' });
