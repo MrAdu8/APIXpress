@@ -8,6 +8,7 @@ const validateHobbyData = [
 ];
 
 /* GET hobby listing. */
+// GET all data from hobbies
 router.get('/', async(req, res, next) => {
   try {
 
@@ -24,6 +25,7 @@ router.get('/', async(req, res, next) => {
 });
 
 /* POST hobby listing. */
+// ADD new data to hobbies
 router.post('/', validateHobbyData, async (req, res, next) => {
   try {
     const errors = validationResult(req);
@@ -49,6 +51,7 @@ router.post('/', validateHobbyData, async (req, res, next) => {
 });
 
 /* PUT hobby listing. */
+// UPDATE existing hobby
 router.put('/:id', validateHobbyData, async (req, res, next) => {
   try {
     const errors = validationResult(req);
