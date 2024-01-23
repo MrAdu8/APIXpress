@@ -8,7 +8,7 @@ const validateUserData = [
   body('lastName').isLength({ min: 3 }).withMessage('Last name must be at least 3 characters'),
   body('email').isEmail().withMessage('Invalid email address'),
   body('phoneNo').isLength({ min: 7, max: 15 }).withMessage('Phone number must be exactly 10 digits'),
-  body('hobbies').optional().isInt().withMessage('Hobbies must be an integer or vaild number'),
+  body('hobbies').optional().isArray().withMessage('Hobbies must be an integer or vaild number'),
 ];
 
 /* GET users listing. */
@@ -45,8 +45,8 @@ router.post('/', validateUserData, async (req, res, next) => {
       email,
       phoneNo
     };
-    var hobby = [];
-    hobby = req.body.hobbies.split(',');
+    var hobby = req.body.hobbies;
+    // hobby = req.body.hobbies;
 
     const SQL = "INSERT INTO users SET ?";
 

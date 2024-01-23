@@ -4,7 +4,7 @@ const connection = require('../database');
 var router = express.Router();
 
 const validateHobbyData = [
-  body('name').toLength({ min:3 }).withMessage('Name must be at least 3 characters'),
+  body('name').isLength({ min:3 }).withMessage('Name must be at least 3 characters'),
 ];
 
 /* GET hobby listing. */
