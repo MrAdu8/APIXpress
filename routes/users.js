@@ -1,6 +1,10 @@
 var express = require('express');
 const { body, validationResult } = require('express-validator');
 const connection = require('../database');
+const { signup, signin } = require('../controllers/userController');
+const SECRET_KEY = 'JAISHREERAM';
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 var router = express.Router();
 
 const validateUserData = [
@@ -28,43 +32,8 @@ router.get('/', async(req, res, next) => {
   }
 });
 
-/* POST users listing. */
-// ADD new data to users
-router.post('/', validateUserData, async (req, res, next) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const { firstName, lastName, email, phoneNo } = req.body;
-    
-    const userData = {
-      firstName,
-      lastName,
-      email,
-      phoneNo
-    };
-    var hobby = req.body.hobbies;
-    // hobby = req.body.hobbies;
-
-    const SQL = "INSERT INTO users SET ?";
-
-    const result = await connection.query(SQL, userData);
-
-    for (let i = 0; i < hobby.length; i++) {
-      const hobbyId = hobby[i];
-      const userId = result.insertId;
-      const HSQL = "INSERT INTO userhobby SET ?";
-      const Hresult = connection.query(HSQL, { userId, hobbyId });
-    }
-
-    res.status(200).json({ message: 'User data added successfully', result });
-
-  } catch (error) {
-    res.status(400).json({ error: 'Unable to access user data. Something is wrong!' });
-  }
-});
+router.post('/signup', validateUserData, signup);
+router.post('/signin', validateUserData, signin);
 
 /* PUT users listing. */
 // UPDATE existing user
