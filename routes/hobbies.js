@@ -28,8 +28,11 @@ router.get('/', async(req, res, next) => {
 // ADD new data to hobbies
 router.post('/', validateHobbyData, async (req, res, next) => {
   try {
+    await connection.beginTransaction();
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      await connection.rollback();
+      
       return res.status(400).json({ errors: errors.array() });
     }
 
@@ -42,10 +45,13 @@ router.post('/', validateHobbyData, async (req, res, next) => {
     const SQL = "INSERT INTO hobbies SET ?";
 
     const result = await connection.query(SQL, hobbyData);
-
+    await connection.commit();
+    
     res.status(200).json({ message: 'hobby data added successfully', result });
 
   } catch (error) {
+    await connection.rollback();
+    
     res.status(500).json({ error: 'Unable to access hobby data. Something is wrong!' });
   }
 });
@@ -54,8 +60,11 @@ router.post('/', validateHobbyData, async (req, res, next) => {
 // UPDATE existing hobby
 router.put('/:id', validateHobbyData, async (req, res, next) => {
   try {
+    await connection.beginTransaction();
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      await connection.rollback();
+      
       return res.status(400).json({ errors: errors.array() });
     }
 
@@ -72,10 +81,13 @@ router.put('/:id', validateHobbyData, async (req, res, next) => {
     const SQL = "UPDATE hobbies SET ? WHERE id = ?";
 
     const result = await connection.query(SQL, [hobbyData, id]);
-
+    await connection.commit();
+    
     res.status(200).json({ message: 'User data updated successfully', result });
 
   } catch (error) {
+    await connection.rollback();
+    
     res.status(500).json({ err: 'Unable to access user data. Something is wrong!' });
   }
 });
