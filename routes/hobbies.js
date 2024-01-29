@@ -32,7 +32,6 @@ router.post('/', validateHobbyData, async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       await connection.rollback();
-      
       return res.status(400).json({ errors: errors.array() });
     }
 
@@ -51,7 +50,6 @@ router.post('/', validateHobbyData, async (req, res, next) => {
 
   } catch (error) {
     await connection.rollback();
-    
     res.status(500).json({ error: 'Unable to access hobby data. Something is wrong!' });
   }
 });
@@ -64,7 +62,6 @@ router.put('/:id', validateHobbyData, async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       await connection.rollback();
-      
       return res.status(400).json({ errors: errors.array() });
     }
 
@@ -87,7 +84,6 @@ router.put('/:id', validateHobbyData, async (req, res, next) => {
 
   } catch (error) {
     await connection.rollback();
-    
     res.status(500).json({ err: 'Unable to access user data. Something is wrong!' });
   }
 });
