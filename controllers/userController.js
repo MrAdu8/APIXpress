@@ -43,17 +43,15 @@ const signup = async(req, res) =>{
       phoneNo,
       password: hashPass,
     };
-    var hobby = req.body.hobbies;
     const SQL = "INSERT INTO users SET ?";
-
     const result = await connection.query(SQL, userData);
+    // hobbies data insert
+    var hobbies = req.body.hobbies;
+    var userId = result.insertId;
+    var hobbyData = hobbies.map(hobbyId => [userId, hobbyId]);
+    const HSQL = "INSERT INTO userhobby (userId, hobbyId) VALUES ?";
+    const Hresult = await connection.query(HSQL, [hobbyData]);
 
-    for (let i = 0; i < hobby.length; i++) {
-      const hobbyId = hobby[i];
-      const userId = result.insertId;
-      const HSQL = "INSERT INTO userhobby SET ?";
-      const Hresult = connection.query(HSQL, { userId, hobbyId });
-    }
     const token = jwt.sign({email: result.email, id: result.insertId}, SECRET_KEY);
     await connection.commit();
     res.status(200).json({ message: 'User data added successfully', result, token });
