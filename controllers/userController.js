@@ -32,7 +32,7 @@ const signup = async(req, res) =>{
         if (existingUser.length > 0) {
             await connection.rollback();
             
-            res.status(400).json({msg: 'User already exist'});
+            res.status(404).json({msg: 'User already exist'});
             return;
         };
     const hashPass = await bcrypt.hash(password, 10);
@@ -58,7 +58,7 @@ const signup = async(req, res) =>{
 
   } catch (error) {
     await connection.rollback();
-    res.status(400).json({ error: 'Unable to access user data. Something is wrong!' });
+    res.status(500).json({ error: 'Unable to access user data. Something is wrong!' });
   }
 };
 
@@ -78,7 +78,7 @@ const signin = async(req, res) =>{
         }
 
         const token = jwt.sign({email: existingUser.email, id: existingUser.id}, SECRET_KEY);
-        res.status(201).json({user: existingUser, token: token});
+        res.status(200).json({user: existingUser, token: token});
     } catch (error) {
         res.status(500).json({msg:'something went wrong !!'},);
     }
@@ -114,7 +114,7 @@ const userUpdate = async(req, res) => {
     res.status(200).json({ message: 'User data updated successfully', result });
   } catch (error) {
     await connection.rollback();
-    res.status(400).json({ err: 'Unable to access user data. Something is wrong!' });
+    res.status(500).json({ err: 'Unable to access user data. Something is wrong!' });
   }
 };
 
@@ -135,7 +135,7 @@ const userDelete = async(req, res) => {
     }
   } catch (error) {
     await connection.rollback();
-    res.status(400).json({ err: 'Unable to delete user. Something is wrong!' });
+    res.status(500).json({ err: 'Unable to delete user. Something is wrong!' });
   }
 };
 
