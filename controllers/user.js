@@ -1,8 +1,7 @@
-const user = require('../routes/users');
 const connection = require('../database');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { body, validationResult } = require('express-validator');
+const { validationResult } = require('express-validator');
 const SECRET_KEY = process.env.SECRET_KEY;
 
 const getallusers = async(req, res) => {

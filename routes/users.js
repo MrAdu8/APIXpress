@@ -1,10 +1,6 @@
 var express = require('express');
-const { body, validationResult } = require('express-validator');
-const connection = require('../database');
-const { getallusers, signup, signin, userUpdate, userDelete } = require('../controllers/userController');
-const SECRET_KEY = 'JAISHREERAM';
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const { body } = require('express-validator');
+const { getallusers, signup, signin, userUpdate, userDelete } = require('../controllers/user');
 var router = express.Router();
 
 const validateUserData = [
