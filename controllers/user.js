@@ -4,36 +4,51 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const SECRET_KEY = process.env.SECRET_KEY;
 
-const getallusers = async(req, res) => {
+const getallusers = async (req, res, next) => {
   try {
     const result = await connection.query("SELECT * FROM users");
-    if (result.affectedRow === 0) {
-      res.status(404).json({err: 'Unable to get data from user'});
-    } else {
-      res.status(200).json(result);
-    }
-
+    res.apiResponse = {
+      status: 'success',
+      data: result
+    };
+    next();
   } catch (error) {
-    res.status(500).json({err: 'You can not access user data something is wrong !!'});
+    res.apiResponse = {
+      status: 'failed',
+      status: 500,
+      message: 'Internal server error',
+      error: 'You cannot access user data; something is wrong!!',
+      data: error,
+    };
+    next();
   }
 };
 
-const signup = async(req, res) =>{
-    const {firstName, lastName, email, phoneNo, password} = req.body;
+const signup = async (req, res, next) => {
+  const { firstName, lastName, email, phoneNo, password } = req.body;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    await connection.rollback();
+    res.apiResponse = {
+      status: 'failed',
+      statusCode: 200,
+      message: 'your data is not validate, something is not correct !!',
+      error: errors
+    };
+    next();
+  }
+  const existingUser = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
   try {
     await connection.beginTransaction();
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
+    if (existingUser.length > 0) {
       await connection.rollback();
-      return res.status(400).json({ errors: errors.array() });
-    }
-    const existingUser = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
-        if (existingUser.length > 0) {
-            await connection.rollback();
-            
-            res.status(404).json({msg: 'User already exist'});
-            return;
-        };
+      res.apiResponse = {
+        status: 'failed',
+        statusCode: 200,
+        error: errors
+      };
+      next();
+    };
     const hashPass = await bcrypt.hash(password, 10);
     const userData = {
       firstName,
@@ -42,62 +57,99 @@ const signup = async(req, res) =>{
       phoneNo,
       password: hashPass,
     };
-    const SQL = "INSERT INTO users SET ?";
-    const result = await connection.query(SQL, userData);
+    const sqlData = "INSERT INTO users SET ?";
+    const result = await connection.query(sqlData, userData);
     // hobbies data insert
     var hobbies = req.body.hobbies;
     var userId = result.insertId;
     var hobbyData = hobbies.map(hobbyId => [userId, hobbyId]);
-    const HSQL = "INSERT INTO userhobby (userId, hobbyId) VALUES ?";
-    const Hresult = await connection.query(HSQL, [hobbyData]);
+    const hsqlData = "INSERT INTO userhobby (userId, hobbyId) VALUES ?";
+    const Hresult = await connection.query(hsqlData, [hobbyData]);
 
-    const token = jwt.sign({email: result.email, id: result.insertId}, SECRET_KEY);
+    const token = jwt.sign({ email: result.email, id: result.insertId }, SECRET_KEY);
     await connection.commit();
-    res.status(200).json({ message: 'User data added successfully', result, token });
-
+    res.apiResponse = {
+      status: 'success',
+      data: { result, token }
+    };
+    next();
   } catch (error) {
     await connection.rollback();
-    res.status(500).json({ error: 'Unable to access user data. Something is wrong!' });
+    res.apiResponse = {
+      status: 500,
+      message: 'Internal server error',
+      error: 'You cannot access user data; something is wrong!!',
+      data: error,
+    };
+    next();
   }
 };
 
-const signin = async(req, res) =>{
+const signin = async(req, res, next) =>{
     const {email, password} = req.body;
     try {
         const existingUser = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
         if (existingUser.length === 0 || !existingUser[0]) {
-            res.status(404).json({msg: 'User not found'});
-            return;
+          await connection.rollback();
+          res.apiResponse = {
+            status: 'failed',
+            statusCode: 200,
+            message: 'User not Found',
+            error: errors
+          }
+          next();
         }
         
         const matchpass = await bcrypt.compare(password, existingUser[0].password);
         if (!matchpass) {
-            res.status(400).json({msg: 'Password is wrong'});
-            return;
+          await connection.rollback();
+          res.apiResponse = {
+            status: 'failed',
+            statusCode: 200,
+            message: 'Password is wrong',
+            error: errors
+          }
+          next();
         }
 
         const token = jwt.sign({email: existingUser.email, id: existingUser.id}, SECRET_KEY);
-        res.status(200).json({user: existingUser, token: token});
+        await connection.commit();
+        res.apiResponse = {
+          status: 'success',
+          data: { result, token }
+        };
+        next();
     } catch (error) {
-        res.status(500).json({msg:'something went wrong !!'},);
+      await connection.rollback();
+      res.apiResponse = {
+        status: 'failed',
+        status: 500,
+        message: 'Internal server error',
+        error: 'You cannot access user data; something is wrong!!',
+        data: error,
+      };
+      next();
     }
 };
 
-const userUpdate = async(req, res) => {
+const userUpdate = async(req, res, next) => {
   try {
     await connection.beginTransaction();
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       await connection.rollback();
-      
-      return res.status(400).json({ errors: errors.array() });
+      res.apiResponse = {
+        status: 'failed',
+        statusCode: 200,
+        message: 'your data is not validate, something is not correct !!',
+        error: errors
+      }
+      next();
     }
 
     const id = req.params.id;
     const { firstName, lastName, email, phoneNo } = req.body;
-
     const updatedOn = new Date();
-
     const userData = {
       firstName,
       lastName,
@@ -106,36 +158,63 @@ const userUpdate = async(req, res) => {
       updatedOn,
       password,
     };
-
-    const SQL = "UPDATE users SET ? WHERE id = ?";
-    const result = await connection.query(SQL, [userData, id]);
+    const sqlData = "UPDATE users SET ? WHERE id = ?";
+    const result = await connection.query(sqlData, [userData, id]);
     await connection.commit();
-    res.status(200).json({ message: 'User data updated successfully', result });
+    res.apiResponse = {
+      status: 'success',
+      data: result
+    };
+    next();
   } catch (error) {
     await connection.rollback();
-    res.status(500).json({ err: 'Unable to access user data. Something is wrong!' });
+    res.apiResponse = {
+      status: 'failed',
+      status: 200,
+      message: 'Internal server error',
+      error: 'You cannot access user data; something is wrong!!',
+      data: error,
+    };
+    next();
   }
 };
 
-const userDelete = async(req, res) => {
+const userDelete = async(req, res, next) => {
   const userid = req.params.id;
   try {
     await connection.beginTransaction();
-    const SQL = "DELETE FROM users WHERE id = ?";
+    const sqlData = "DELETE FROM users WHERE id = ?";
 
-    const result = await connection.query(SQL, [userid]);
+    const result = await connection.query(sqlData, [userid]);
 
     if (result.affectedRows === 0) {
       await connection.rollback();
-      res.status(404).json({ err: 'User not found or unable to delete user' });
+      res.apiResponse = {
+        status: 'failed',
+        statusCode: 200,
+        message: 'User not found or unable to delete user',
+        error: errors
+      }
+      next();
     } else {
       await connection.commit();
-      res.status(200).json({ message: 'User deleted successfully' });
+      res.apiResponse = {
+        status: 'success',
+        data: result
+      };
+      next();
     }
   } catch (error) {
     await connection.rollback();
-    res.status(500).json({ err: 'Unable to delete user. Something is wrong!' });
+    res.apiResponse = {
+      status: 'failed',
+      status: 200,
+      message: 'Internal server error',
+      error: 'You cannot access user data; something is wrong!!',
+      data: error,
+    };
+    next();
   }
 };
 
-module.exports = {getallusers, signup, signin, userUpdate, userDelete};
+module.exports = { getallusers, signup, signin, userUpdate, userDelete};

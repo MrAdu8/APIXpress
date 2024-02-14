@@ -1,7 +1,8 @@
-var express = require('express');
+const express = require('express');
 const { body } = require('express-validator');
 const { getallusers, signup, signin, userUpdate, userDelete } = require('../controllers/user');
-var router = express.Router();
+const router = express.Router();
+const globalReponse = require('../helpers/globalResponse');
 
 const validateUserData = [
   body('firstName').isLength({ min: 3 }).withMessage('First name must be at least 3 characters'),
@@ -15,10 +16,10 @@ const validateUserData = [
     .matches(/[a-zA-Z]/).withMessage('Password must contain a letter')
 ];
 
-router.get('/', getallusers);
-router.post('/signup', validateUserData, signup);
-router.post('/signin', validateUserData, signin);
-router.put('/:id', validateUserData, userUpdate);
-router.delete('/:id', userDelete);
+router.get('/', getallusers, globalReponse);
+router.post('/signup', validateUserData, signup, globalReponse);
+router.post('/signin', validateUserData, signin, globalReponse);
+router.put('/:id', validateUserData, userUpdate, globalReponse);
+router.delete('/:id', userDelete, globalReponse);
 
 module.exports = router;
