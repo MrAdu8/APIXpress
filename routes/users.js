@@ -3,6 +3,7 @@ const { body } = require('express-validator');
 const { getallusers, signup, signin, userUpdate, userDelete } = require('../controllers/user');
 const router = express.Router();
 const globalReponse = require('../helpers/globalResponse');
+const vaildation = require('../auth/auth');
 
 const validateUserData = [
   body('firstName').isLength({ min: 3 }).withMessage('First name must be at least 3 characters'),
@@ -18,7 +19,7 @@ const validateUserData = [
 
 router.get('/', getallusers, globalReponse);
 router.post('/signup', validateUserData, signup, globalReponse);
-router.post('/signin', validateUserData, signin, globalReponse);
+router.post('/signin', validateUserData, signin, vaildation, globalReponse);
 router.put('/:id', validateUserData, userUpdate, globalReponse);
 router.delete('/:id', userDelete, globalReponse);
 

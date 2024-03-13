@@ -24,7 +24,7 @@ const getallhobbies = async(req, res, next) => {
     } catch (error) {
         res.apiResponse = {
             status: 'failed',
-            status: 500,
+            statusCode: 500,
             message: 'Internal server error',
             error: 'You can not access hobby data something is wrong !!',
             data: error,
@@ -66,7 +66,8 @@ const addnewhobby = async (req, res, next) => {
     } catch (error) {
       await connection.rollback();
       res.apiResponse = {
-        status: 500,
+        status: 'failed',
+        statusCode: 500,
         message: 'Internal server error',
         error: 'You cannot access hobby data; something is wrong!!',
         data: error,
@@ -111,7 +112,8 @@ const updatenewhobby = async (req, res, next) => {
     } catch (error) {
       await connection.rollback();
       res.apiResponse = {
-        status: 500,
+        status: 'failed',
+        statusCode: 500,
         message: 'Internal server error',
         error: 'You cannot access hobby data; something is wrong!!',
         data: error,

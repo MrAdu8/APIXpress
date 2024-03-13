@@ -15,7 +15,7 @@ const getallusers = async (req, res, next) => {
   } catch (error) {
     res.apiResponse = {
       status: 'failed',
-      status: 500,
+      status: 200,
       message: 'Internal server error',
       error: 'You cannot access user data; something is wrong!!',
       data: error,
@@ -76,7 +76,7 @@ const signup = async (req, res, next) => {
   } catch (error) {
     await connection.rollback();
     res.apiResponse = {
-      status: 500,
+      statusCode: 200,
       message: 'Internal server error',
       error: 'You cannot access user data; something is wrong!!',
       data: error,
@@ -116,14 +116,14 @@ const signin = async(req, res, next) =>{
         await connection.commit();
         res.apiResponse = {
           status: 'success',
-          data: { result, token }
+          data: { token }
         };
         next();
     } catch (error) {
       await connection.rollback();
       res.apiResponse = {
         status: 'failed',
-        status: 500,
+        statusCode: 200,
         message: 'Internal server error',
         error: 'You cannot access user data; something is wrong!!',
         data: error,
@@ -170,7 +170,7 @@ const userUpdate = async(req, res, next) => {
     await connection.rollback();
     res.apiResponse = {
       status: 'failed',
-      status: 200,
+      statusCode: 200,
       message: 'Internal server error',
       error: 'You cannot access user data; something is wrong!!',
       data: error,
@@ -208,7 +208,7 @@ const userDelete = async(req, res, next) => {
     await connection.rollback();
     res.apiResponse = {
       status: 'failed',
-      status: 200,
+      statusCode: 200,
       message: 'Internal server error',
       error: 'You cannot access user data; something is wrong!!',
       data: error,
