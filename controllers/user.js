@@ -15,7 +15,7 @@ const getallusers = async (req, res, next) => {
   } catch (error) {
     res.apiResponse = {
       status: 'failed',
-      status: 200,
+      statusCode: 200,
       message: 'Internal server error',
       error: 'You cannot access user data; something is wrong!!',
       data: error,
@@ -90,37 +90,37 @@ const signin = async(req, res, next) =>{
     try {
         const existingUser = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
         if (existingUser.length === 0 || !existingUser[0]) {
-          await connection.rollback();
+          // await connection.rollback();
           res.apiResponse = {
             status: 'failed',
             statusCode: 200,
             message: 'User not Found',
-            error: errors
+            // error: errors
           }
           next();
         }
         
         const matchpass = await bcrypt.compare(password, existingUser[0].password);
         if (!matchpass) {
-          await connection.rollback();
+          // await connection.rollback();
           res.apiResponse = {
             status: 'failed',
             statusCode: 200,
             message: 'Password is wrong',
-            error: errors
+            // error: errors
           }
           next();
         }
 
         const token = jwt.sign({email: existingUser.email, id: existingUser.id}, SECRET_KEY);
-        await connection.commit();
+        // await connection.commit();
         res.apiResponse = {
           status: 'success',
           data: { token }
         };
         next();
     } catch (error) {
-      await connection.rollback();
+      // await connection.rollback();
       res.apiResponse = {
         status: 'failed',
         statusCode: 200,

@@ -10,7 +10,7 @@ module.exports = async (req, res, next) => {
             status: 'failed',
             statusCode: 500,
             message: 'Authentication Needed.',
-            error: 'You cannot access user data; Due to Authentication failed!!',
+            error: 'Access denied!! Token Needed',
         };
         return next();
     }
@@ -24,7 +24,7 @@ module.exports = async (req, res, next) => {
             status: 'failed',
             statusCode: 200,
             message: 'Authentication failed.',
-            error: 'You cannot access user data; Due to Authentication failed!!',
+            error: 'Access denied!! Token Failed',
             data: error.message,
         };
         next();
